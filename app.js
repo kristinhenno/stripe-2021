@@ -2,7 +2,10 @@ const express = require('express');
 const path = require('path');
 const exphbs = require('express-handlebars');
 require('dotenv').config();
-const stripe = require('stripe');
+// const stripe = require('stripe');
+
+//KH- added stripe secret key
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 var app = express();
 
@@ -19,14 +22,14 @@ app.use(express.json({}));
 /**
  * Home route
  */
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
   res.render('index');
 });
 
 /**
  * Checkout route
  */
-app.get('/checkout', function(req, res) {
+app.get('/checkout', function (req, res) {
   // Just hardcoding amounts here to avoid using a database
   const item = req.query.item;
   let title, amount, error;
@@ -34,19 +37,19 @@ app.get('/checkout', function(req, res) {
   switch (item) {
     case '1':
       title = "The Art of Doing Science and Engineering"
-      amount = 2300      
+      amount = 2300
       break;
     case '2':
       title = "The Making of Prince of Persia: Journals 1985-1993"
       amount = 2500
-      break;     
+      break;
     case '3':
       title = "Working in Public: The Making and Maintenance of Open Source"
-      amount = 2800  
-      break;     
+      amount = 2800
+      break;
     default:
       // Included in layout view, feel free to assign error
-      error = "No item selected"      
+      error = "No item selected"
       break;
   }
 
@@ -57,10 +60,39 @@ app.get('/checkout', function(req, res) {
   });
 });
 
+const calculateOrderAmount = (items) => {
+  // Replace this constant with a calculation of the order's amount
+  // Calculate the order total on the server to prevent
+  // people from directly manipulating the amount on the client
+  return 1400;
+};
+
+
+//KH- added payment intent
+app.post("/create-payment-intent", async (req, res) => {
+  const { items } = req.body;
+
+  // Create a PaymentIntent with the order amount and currency
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: calculateOrderAmount(items),
+    currency: "usd",
+    automatic_payment_methods: {
+      //KH- automatically will disable/enable payment methods based on currency, 
+      // payment method restrictions, and other parameters to determine the list of supported payment methods
+      enabled: true,
+    },
+  });
+
+  res.send({
+    //KH- the client secret can be used to complete a payment from the frontend
+    clientSecret: paymentIntent.client_secret,
+  });
+});
+
 /**
  * Success route
  */
-app.get('/success', function(req, res) {
+app.get('/success', function (req, res) {
   res.render('success');
 });
 
