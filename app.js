@@ -29,10 +29,10 @@ app.get('/', function (req, res) {
 /**
  * Checkout route
  */
-app.get('/checkout', function (req, res) {
-  // Just hardcoding amounts here to avoid using a database
-  const item = req.query.item;
-  let title, amount, error;
+
+let title, amount, error;
+
+function getItem(item) {
 
   switch (item) {
     case '1':
@@ -53,29 +53,46 @@ app.get('/checkout', function (req, res) {
       break;
   }
 
+}
+
+app.get('/checkout', function (req, res) {
+  // Just hardcoding amounts here to avoid using a database
+  const item = req.query.item;
+
+  getItem(item)
+
   res.render('checkout', {
+    item: item,
     title: title,
     amount: amount,
     error: error
   });
+
 });
 
 const calculateOrderAmount = (items) => {
-  // Replace this constant with a calculation of the order's amount
-  // Calculate the order total on the server to prevent
-  // people from directly manipulating the amount on the client
-  return 1400;
+  //KH- ability to calculate multiple items
+  let orderAmount = 0;
+  for (let i = 0; i < items.length; i++) {
+    getItem(items[i].id)
+    orderAmount = orderAmount + amount;
+  }
+  return orderAmount
 };
 
 
 //KH- added payment intent
 app.post("/create-payment-intent", async (req, res) => {
   const { items } = req.body;
+  const { email } = req.body;
+  console.log(email)
 
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
     amount: calculateOrderAmount(items),
     currency: "usd",
+    receipt_email: email,
+
     automatic_payment_methods: {
       //KH- automatically will disable/enable payment methods based on currency, 
       // payment method restrictions, and other parameters to determine the list of supported payment methods

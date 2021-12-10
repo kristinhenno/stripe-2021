@@ -4,7 +4,7 @@
       <h1>
         Checkout — Stripe Press
       </h1>
-      <h5 class="text-secondary">
+      <h5 id="item" data-id={{item}} class="text-secondary">
         {{title}}
       </h5>
       <hr class="mt-40">
@@ -16,45 +16,21 @@
       <div class="card-body">
         <!-- Display a payment form -->
         <form id="payment-form">
-          <div id="card-element">
-            <!--Stripe.js injects the Card Element-->
-          </div>
-          <button id="submit"> Pay $
-            <div class="spinner hidden" id="spinner"></div>
-            <span id="button-text" class="amount" data-amount="{{amount}}"> </span>
-          </button>
-          <p id="card-error" role="alert"></p>
-          <p class="result-message hidden">
-            Payment succeeded, see the result in your
-            <a href="" target="_blank">Stripe dashboard.</a> Refresh the page to pay again.
-          </p>
-        </form>
-        {{!-- <form id="payment-form">
-          <div id="card-element">
-            <!--Stripe.js injects the Card Element-->
-          </div>
-          <button type="submit" class="btn btn-lg btn-block btn-primary spinner hidden" id="spinner">Pay $<span
-              id="button-text" class="amount" data-amount="{{amount}}"></span></button>
-
-          <p id="card-error" role="alert"></p>
-          <p class="result-message hidden">
-            Payment succeeded, see the result in your
-            <a href="" target="_blank">Stripe dashboard.</a> Refresh the page to pay again.
-          </p>
-        </form> --}}
-        {{!-- <form name="payment-form">
           <div>
             <label for="email">Email address</label>
             <input type="email" class="form-control" id="email" name="email" placeholder="you@email.com">
           </div>
-          <div class="mt-20 text-center text-secondary border-placeholder">
-            Add Stripe Element here!
+          <div id="payment-element">
+            <!--Stripe.js injects the Payment Element-->
           </div>
-          <div class="mt-20">
-            <button type="submit" class="btn btn-lg btn-block btn-primary">Pay $<span class="amount"
-                data-amount="{{amount}}"></span></button>
-          </div>
-        </form> --}}
+          <button id="submit"> Pay $
+            <div class="spinner hidden" id="spinner"></div>
+            <span id="button-text" class="amount" data-amount="{{amount}}">
+            </span>
+          </button>
+          <div id="payment-message" class="hidden"></div>
+        </form>
+
       </div>
     </div>
   </div>
