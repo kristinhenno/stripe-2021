@@ -5,132 +5,150 @@
 $(document).ready(function () {
   var amounts = document.getElementsByClassName("amount");
 
-  //MAKE CHECKOUT PAGE ONLY
-  //KH- get customer email
-  var email = "test@test.com"
-  // var email = document.getElementById("email").value
-  //KH- get itemId to send to in payment-intent
-  var itemId = document.getElementById("item").getAttribute("data-id");
-
+  const stripe = Stripe("pk_test_51K4zqDIkcaZyDXvcuAN8KtdDnxNEpBR5LSLXH1w0dQu4u9UHoogtpDbx1VUoVjPKj1Vcp2A7f3sENVtWjXj8Lo9P00BJW1rail");
 
 
   // iterate through all "amount" elements and convert from cents to dollars
   for (var i = 0; i < amounts.length; i++) {
     amount = amounts[i].getAttribute('data-amount') / 100;
+
     amounts[i].innerHTML = amount.toFixed(2);
   }
 
-  const stripe = Stripe("pk_test_51K4zqDIkcaZyDXvcuAN8KtdDnxNEpBR5LSLXH1w0dQu4u9UHoogtpDbx1VUoVjPKj1Vcp2A7f3sENVtWjXj8Lo9P00BJW1rail");
+  if (document.location.pathname == "/checkout") {
 
-  // The items the customer wants to buy
-  const items = [{ id: itemId }];
+    var email = document.getElementById("email");
 
-  let elements;
 
-  initialize();
-  checkStatus();
+    //KH- get itemId to send to in payment-intent
+    var itemId = document.getElementById("item").getAttribute("data-id");
 
-  document
-    .querySelector("#payment-form")
-    .addEventListener("submit", handleSubmit);
+    // The items the customer wants to buy
+    const items = [{ id: itemId }];
 
-  // Fetches a payment intent and captures the client secret
-  async function initialize() {
-    const response = await fetch("/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, email }),
-    });
-    const { clientSecret } = await response.json();
+    let elements;
 
-    const appearance = {
-      theme: 'stripe',
-    };
-    elements = stripe.elements({ appearance, clientSecret });
+    initialize();
+    checkStatus();
 
-    const paymentElement = elements.create("payment");
-    paymentElement.mount("#payment-element");
-  }
+    document
+      .querySelector("#payment-form")
+      .addEventListener("submit", handleSubmit);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setLoading(true);
+    // Fetches a payment intent and captures the client secret
+    async function initialize() {
+      const response = await fetch("/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      const { clientSecret } = await response.json();
 
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        // Make sure to change this to your payment completion page
-        return_url: "http://localhost:3000/",
-      },
-    });
+      const appearance = {
+        theme: 'stripe',
+      };
+      elements = stripe.elements({ appearance, clientSecret });
 
-    // This point will only be reached if there is an immediate error when
-    // confirming the payment. Otherwise, your customer will be redirected to
-    // your `return_url`. For some payment methods like iDEAL, your customer will
-    // be redirected to an intermediate site first to authorize the payment, then
-    // redirected to the `return_url`.
-    if (error.type === "card_error" || error.type === "validation_error") {
-      showMessage(error.message);
-    } else {
-      showMessage("An unexpected error occured.");
+      const paymentElement = elements.create("payment");
+      paymentElement.mount("#payment-element");
     }
 
-    setLoading(false);
-  }
+    async function handleSubmit(e) {
+      e.preventDefault();
+      setLoading(true);
 
-  // Fetches the payment intent status after payment submission
-  async function checkStatus() {
-    const clientSecret = new URLSearchParams(window.location.search).get(
-      "payment_intent_client_secret"
-    );
+      console.log(window.location.hostname)
 
-    if (!clientSecret) {
-      return;
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          receipt_email: email.value,
+          // shipping: {
+          //   address: {
+          //     city: 'Santa Barbara',
+          //     country: 'US',
+          //     line1: '2686 puesta del sol',
+          //     line2: '',
+          //     postal_code: 93105,
+          //     state: 'CA'
+
+          //   },
+          //   name: 'Kristin Henno'
+          // },
+
+          // Make sure to change this to your payment completion page
+          return_url: "http://localhost:3000/success",
+        },
+      });
+
+      // This point will only be reached if there is an immediate error when
+      // confirming the payment. Otherwise, your customer will be redirected to
+      // your `return_url`. For some payment methods like iDEAL, your customer will
+      // be redirected to an intermediate site first to authorize the payment, then
+      // redirected to the `return_url`.
+      if (error.type === "card_error" || error.type === "validation_error") {
+        showMessage(error.message);
+      } else {
+        showMessage("An unexpected error occured.");
+      }
+
+      setLoading(false);
     }
 
-    const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
+    // Fetches the payment intent status after payment submission
+    async function checkStatus() {
+      const clientSecret = new URLSearchParams(window.location.search).get(
+        "payment_intent_client_secret"
+      );
 
-    switch (paymentIntent.status) {
-      case "succeeded":
-        showMessage("Payment succeeded!");
-        break;
-      case "processing":
-        showMessage("Your payment is processing.");
-        break;
-      case "requires_payment_method":
-        showMessage("Your payment was not successful, please try again.");
-        break;
-      default:
-        showMessage("Something went wrong.");
-        break;
+      if (!clientSecret) {
+        return;
+      }
+
+      const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
+
+      switch (paymentIntent.status) {
+        case "succeeded":
+          showMessage("Payment succeeded!");
+          break;
+        case "processing":
+          showMessage("Your payment is processing.");
+          break;
+        case "requires_payment_method":
+          showMessage("Your payment was not successful, please try again.");
+          break;
+        default:
+          showMessage("Something went wrong.");
+          break;
+      }
     }
-  }
 
-  // ------- UI helpers -------
+    // ------- UI helpers -------
 
-  function showMessage(messageText) {
-    const messageContainer = document.querySelector("#payment-message");
+    function showMessage(messageText) {
+      const messageContainer = document.querySelector("#payment-message");
 
-    messageContainer.classList.remove("hidden");
-    messageContainer.textContent = messageText;
+      messageContainer.classList.remove("hidden");
+      messageContainer.textContent = messageText;
 
-    setTimeout(function () {
-      messageContainer.classList.add("hidden");
-      messageText.textContent = "";
-    }, 4000);
-  }
+      setTimeout(function () {
+        messageContainer.classList.add("hidden");
+        messageText.textContent = "";
+      }, 4000);
+    }
 
-  // Show a spinner on payment submission
-  function setLoading(isLoading) {
-    if (isLoading) {
-      // Disable the button and show a spinner
-      document.querySelector("#submit").disabled = true;
-      document.querySelector("#spinner").classList.remove("hidden");
-      document.querySelector("#button-text").classList.add("hidden");
-    } else {
-      document.querySelector("#submit").disabled = false;
-      document.querySelector("#spinner").classList.add("hidden");
-      document.querySelector("#button-text").classList.remove("hidden");
+    // Show a spinner on payment submission
+    function setLoading(isLoading) {
+      if (isLoading) {
+        // Disable the button and show a spinner
+        document.querySelector("#submit").disabled = true;
+        document.querySelector("#spinner").classList.remove("hidden");
+        document.querySelector("#button-text").classList.add("hidden");
+      } else {
+        document.querySelector("#submit").disabled = false;
+        document.querySelector("#spinner").classList.add("hidden");
+        document.querySelector("#button-text").classList.remove("hidden");
+      }
     }
   }
 })

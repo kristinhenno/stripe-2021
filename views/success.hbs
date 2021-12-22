@@ -1,13 +1,41 @@
 <main>
-  <div class="mt-40 text-center text-success">
-    <h1>
-      <i class="far fa-check-circle"></i> 
-      Success!
-    </h1>
-  </div>
-  <div class="mt-40 text-center">
-    <div class="mt-20 text-center text-secondary border-placeholder">
-      Add details about the payment here!
+  <div class=" text-success row justify-content-md-center">
+    <div class="col-8">
+      <div class="text-center mt-40">
+        <h1>
+          <i class="far fa-check-circle"></i>
+          Success!
+        </h1>
+      </div>
+      <div class="card box-shadow mt-40">
+        <p class="mt-20 card-body text-center text-secondary ">
+
+          Thank you, {{email}}!
+        </p>
+        <div>
+          {{#each items}}
+          <p class="text-secondary lineItem">
+            1 &nbsp; x &nbsp; {{title}}
+          </p>
+          <p class="text-secondary lineItemAmount"> $
+            <span class="text-secondary amount" data-amount="{{amount}}">
+
+            </span>
+          </p>
+          {{/each}}
+
+
+        </div>
+
+        <div class="orderAmountDiv">
+          <p class="text-secondary orderAmount "> $
+            <span class="text-secondary amount" data-amount="{{amount}}">
+
+            </span>
+          </p>
+        </div>
+      </div>
     </div>
+  </div>
   </div>
 </main>
