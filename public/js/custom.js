@@ -19,7 +19,8 @@ $(document).ready(function () {
 
   var amounts = document.getElementsByClassName("amount");
 
-  //KH- publishable key
+  //KH- Initialize Stripe.js with your publishable API keys. 
+  // You will use Stripe.js to create the Payment Element and complete the payment on the client.
 
   const stripe = Stripe("pk_test_51K4zqDIkcaZyDXvcuAN8KtdDnxNEpBR5LSLXH1w0dQu4u9UHoogtpDbx1VUoVjPKj1Vcp2A7f3sENVtWjXj8Lo9P00BJW1rail");
 
@@ -48,6 +49,8 @@ $(document).ready(function () {
       .addEventListener("submit", handleSubmit);
 
     // Fetches a payment intent and captures the client secret
+    // Immediately make a request to the endpoint on your server to create a new PaymentIntent as soon as your checkout page loads. 
+    // The clientSecret returned by your endpoint is used to complete the payment.
     async function initialize() {
       const response = await fetch("/create-payment-intent", {
         method: "POST",

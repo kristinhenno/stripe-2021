@@ -127,8 +127,6 @@ app.post("/create-payment-intent", async (req, res) => {
 app.get("/success", async (req, res) => {
 
   const order = req.query.payment_intent;
-
-
   const paymentIntent = await stripe.paymentIntents.retrieve(
     order
   );
@@ -142,7 +140,8 @@ app.get("/success", async (req, res) => {
   res.render('success', {
     items: JSON.parse(paymentIntent.metadata.items),
     email: paymentIntent.receipt_email,
-    amount: paymentIntent.amount
+    amount: paymentIntent.amount,
+    paymentIntent: order
   });
 
   // res.send({
