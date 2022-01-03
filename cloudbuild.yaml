@@ -2,3 +2,9 @@ steps:
 - name: "gcr.io/cloud-builders/gcloud"
   args: ["app", "deploy"]
 timeout: "1600s"
+
+- name: node:10.15.1
+  entrypoint: npm
+  args: ["run", "create-env"]
+ env:
+    - 'STRIPE_SECRET_KEY=${_STRIPE_SECRET_KEY}'
