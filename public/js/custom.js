@@ -3,6 +3,17 @@
  */
 
 $(document).ready(function () {
+
+  var url;
+
+  if (location.hostname === "localhost") {
+    url = "http://localhost:3000";
+  }
+
+  else {
+    url = "http://sa-project-335905.uc.r.appspot.com";
+  }
+
   var amounts = document.getElementsByClassName("amount");
 
   const stripe = Stripe("pk_test_51K4zqDIkcaZyDXvcuAN8KtdDnxNEpBR5LSLXH1w0dQu4u9UHoogtpDbx1VUoVjPKj1Vcp2A7f3sENVtWjXj8Lo9P00BJW1rail");
@@ -10,22 +21,18 @@ $(document).ready(function () {
 
   // iterate through all "amount" elements and convert from cents to dollars
   for (var i = 0; i < amounts.length; i++) {
-    amount = amounts[i].getAttribute('data-amount') / 100;
 
+    amount = amounts[i].getAttribute('data-amount') / 100;
     amounts[i].innerHTML = amount.toFixed(2);
+
   }
 
   if (document.location.pathname == "/checkout") {
-
     var email = document.getElementById("email");
-
-
     //KH- get itemId to send to in payment-intent
     var itemId = document.getElementById("item").getAttribute("data-id");
-
     // The items the customer wants to buy
     const items = [{ id: itemId }];
-
     let elements;
 
     initialize();
@@ -63,21 +70,8 @@ $(document).ready(function () {
         elements,
         confirmParams: {
           receipt_email: email.value,
-          // shipping: {
-          //   address: {
-          //     city: 'Santa Barbara',
-          //     country: 'US',
-          //     line1: '2686 puesta del sol',
-          //     line2: '',
-          //     postal_code: 93105,
-          //     state: 'CA'
-
-          //   },
-          //   name: 'Kristin Henno'
-          // },
-
           // Make sure to change this to your payment completion page
-          return_url: "http://localhost:3000/success",
+          return_url: url + "/success",
         },
       });
 

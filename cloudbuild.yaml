@@ -1,30 +1,4 @@
 steps:
-    # Step 0: Install deps for react client
-    - name: 'gcr.io/cloud-builders/npm'
-      dir: 'public'
-      args: ['install']
-      timeout: 400s
-
-    # Step 1: Build the react client
-    - name: 'gcr.io/cloud-builders/npm'
-      dir: 'public'
-      args: ['build']
-      timeout: 400s
-
-    #  # Step 2: Install deps for server
-    #  - name: "gcr.io/cloud-builders/yarn"
-    #    dir: 'server'
-    #    args: [ "install" ]
-    #    timeout: 400s
-    #
-    #  # Step 2: Install deps for server
-    #  - name: "bash"
-    #    args: [ "ls", "-la"]
-    #    timeout: 400s
-
-    # Step 3: FRONTEND Deploy cloud app frontend
-    - name: 'gcr.io/cloud-builders/gcloud'
-      args: ['app', 'deploy', 'app.yaml']
-      timeout: 3600s
-
-timeout: 3600s
+- name: "gcr.io/cloud-builders/gcloud"
+  args: ["app", "deploy"]
+timeout: "1600s"
