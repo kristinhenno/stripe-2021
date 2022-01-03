@@ -4,6 +4,8 @@
 
 $(document).ready(function () {
 
+
+  // KH- get host for stripe success redirect
   var url;
 
   if (location.hostname === "localhost") {
@@ -14,7 +16,10 @@ $(document).ready(function () {
     url = "http://sa-project-335905.uc.r.appspot.com";
   }
 
+
   var amounts = document.getElementsByClassName("amount");
+
+  //KH- publishable key
 
   const stripe = Stripe("pk_test_51K4zqDIkcaZyDXvcuAN8KtdDnxNEpBR5LSLXH1w0dQu4u9UHoogtpDbx1VUoVjPKj1Vcp2A7f3sENVtWjXj8Lo9P00BJW1rail");
 
@@ -61,32 +66,38 @@ $(document).ready(function () {
     }
 
     async function handleSubmit(e) {
-      e.preventDefault();
-      setLoading(true);
+      //KH- handle email validation
+      if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.value)) {
+        e.preventDefault();
+        setLoading(true);
+        console.log(email.value)
 
-      console.log(window.location.hostname)
+        const { error } = await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            receipt_email: email.value,
+            // Make sure to change this to your payment completion page
+            return_url: url + "/success",
+          },
+        });
 
-      const { error } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          receipt_email: email.value,
-          // Make sure to change this to your payment completion page
-          return_url: url + "/success",
-        },
-      });
+        // This point will only be reached if there is an immediate error when
+        // confirming the payment. Otherwise, your customer will be redirected to
+        // your `return_url`. For some payment methods like iDEAL, your customer will
+        // be redirected to an intermediate site first to authorize the payment, then
+        // redirected to the `return_url`.
+        if (error.type === "card_error" || error.type === "validation_error") {
+          showMessage(error.message);
+        } else {
+          showMessage("An unexpected error occured.");
+        }
 
-      // This point will only be reached if there is an immediate error when
-      // confirming the payment. Otherwise, your customer will be redirected to
-      // your `return_url`. For some payment methods like iDEAL, your customer will
-      // be redirected to an intermediate site first to authorize the payment, then
-      // redirected to the `return_url`.
-      if (error.type === "card_error" || error.type === "validation_error") {
-        showMessage(error.message);
+        setLoading(false);
       } else {
-        showMessage("An unexpected error occured.");
+        e.preventDefault();
+        console.log("no email")
+        showMessage("Must enter a valid email.")
       }
-
-      setLoading(false);
     }
 
     // Fetches the payment intent status after payment submission
