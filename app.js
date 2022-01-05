@@ -56,9 +56,7 @@ function getItem(item) {
 
 app.get('/checkout', function (req, res) {
   const item = req.query.item;
-
   getItem(item)
-
   res.render('checkout', {
     item: item,
     title: title,
@@ -72,7 +70,7 @@ app.get('/checkout', function (req, res) {
 
 
 const calculateOrderAmount = (items) => {
-  //KH- ability to calculate multiple items
+  //KH- calculate multiple items (not possible from front end yet)
   let orderAmount = 0;
   for (let i = 0; i < items.length; i++) {
     getItem(items[i].id)
@@ -85,20 +83,15 @@ const calculateOrderAmount = (items) => {
 //KH- added payment intent
 app.post("/create-payment-intent", async (req, res) => {
   const { items } = req.body;
-  const { email } = req.body;
-
   var lineItems = [];
 
-
-  //KH- preparing to send lineItems in meta data
+  //KH- preparing to send lineItems in meta data if more than one item is purchased (not possible from front end yet)
   for (let i = 0; i < items.length; i++) {
     getItem(items[i].id)
-
     lineItems.push({
       amount: amount,
       title: title
     })
-    console.log(lineItems)
   }
 
 
@@ -106,8 +99,6 @@ app.post("/create-payment-intent", async (req, res) => {
   const paymentIntent = await stripe.paymentIntents.create({
     amount: calculateOrderAmount(items),
     currency: "usd",
-    //send customer email for receipt
-    receipt_email: email,
     metadata: {
       'items': JSON.stringify(lineItems),
     },
@@ -119,19 +110,18 @@ app.post("/create-payment-intent", async (req, res) => {
   });
 
   res.send({
-    //KH- the client secret can be used to complete a payment from the frontend
+    //KH- the client secret is needed to complete a payment from the frontend
     clientSecret: paymentIntent.client_secret,
   });
 });
 
 app.get("/success", async (req, res) => {
 
+  // KH - using this on the server instead of client to retrieve metadata with item level detes (doesn't populate on client)
   const order = req.query.payment_intent;
   const paymentIntent = await stripe.paymentIntents.retrieve(
     order
   );
-
-  console.log(paymentIntent)
 
   /**
    * Success route
@@ -142,13 +132,8 @@ app.get("/success", async (req, res) => {
     email: paymentIntent.receipt_email,
     amount: paymentIntent.amount,
     paymentIntent: order
-  });
-
-  // res.send({
-  //   //KH- the client secret can be used to complete a payment from the frontend
-  //   items: paymentIntent
-  // });
-
+  }
+  );
 })
 
 /**

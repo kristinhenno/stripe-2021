@@ -16,14 +16,13 @@ $(document).ready(function () {
     url = "http://sa-project-335905.uc.r.appspot.com";
   }
 
-
-  var amounts = document.getElementsByClassName("amount");
-
   //KH- Initialize Stripe.js with your publishable API keys. 
   // You will use Stripe.js to create the Payment Element and complete the payment on the client.
 
   const stripe = Stripe("pk_test_51K4zqDIkcaZyDXvcuAN8KtdDnxNEpBR5LSLXH1w0dQu4u9UHoogtpDbx1VUoVjPKj1Vcp2A7f3sENVtWjXj8Lo9P00BJW1rail");
 
+
+  var amounts = document.getElementsByClassName("amount");
 
   // iterate through all "amount" elements and convert from cents to dollars
   for (var i = 0; i < amounts.length; i++) {
@@ -34,6 +33,8 @@ $(document).ready(function () {
   }
 
   if (document.location.pathname == "/checkout") {
+
+    //KH- get email to send in confirmation of paymentIntent
     var email = document.getElementById("email");
     //KH- get itemId to send to in payment-intent
     var itemId = document.getElementById("item").getAttribute("data-id");
@@ -42,15 +43,12 @@ $(document).ready(function () {
     let elements;
 
     initialize();
-    checkStatus();
 
     document
       .querySelector("#payment-form")
       .addEventListener("submit", handleSubmit);
 
     // Fetches a payment intent and captures the client secret
-    // Immediately make a request to the endpoint on your server to create a new PaymentIntent as soon as your checkout page loads. 
-    // The clientSecret returned by your endpoint is used to complete the payment.
     async function initialize() {
       const response = await fetch("/create-payment-intent", {
         method: "POST",
@@ -84,11 +82,7 @@ $(document).ready(function () {
           },
         });
 
-        // This point will only be reached if there is an immediate error when
-        // confirming the payment. Otherwise, your customer will be redirected to
-        // your `return_url`. For some payment methods like iDEAL, your customer will
-        // be redirected to an intermediate site first to authorize the payment, then
-        // redirected to the `return_url`.
+        // This point will only be reached if there is an immediate error when confirming the payment.
         if (error.type === "card_error" || error.type === "validation_error") {
           showMessage(error.message);
         } else {
@@ -100,34 +94,6 @@ $(document).ready(function () {
         e.preventDefault();
         console.log("no email")
         showMessage("Must enter a valid email.")
-      }
-    }
-
-    // Fetches the payment intent status after payment submission
-    async function checkStatus() {
-      const clientSecret = new URLSearchParams(window.location.search).get(
-        "payment_intent_client_secret"
-      );
-
-      if (!clientSecret) {
-        return;
-      }
-
-      const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
-
-      switch (paymentIntent.status) {
-        case "succeeded":
-          showMessage("Payment succeeded!");
-          break;
-        case "processing":
-          showMessage("Your payment is processing.");
-          break;
-        case "requires_payment_method":
-          showMessage("Your payment was not successful, please try again.");
-          break;
-        default:
-          showMessage("Something went wrong.");
-          break;
       }
     }
 
@@ -158,5 +124,6 @@ $(document).ready(function () {
         document.querySelector("#button-text").classList.remove("hidden");
       }
     }
+
   }
 })
