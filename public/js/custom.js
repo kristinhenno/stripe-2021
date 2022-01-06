@@ -60,6 +60,7 @@ $(document).ready(function () {
       const appearance = {
         theme: 'stripe',
       };
+
       elements = stripe.elements({ appearance, clientSecret });
 
       const paymentElement = elements.create("payment");

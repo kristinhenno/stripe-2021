@@ -29,9 +29,10 @@ app.get('/', function (req, res) {
  * Checkout route
  */
 
-let title, amount, error;
+
 
 function getItem(item) {
+  let title, amount, error;
 
   switch (item) {
     case '1':
@@ -51,30 +52,31 @@ function getItem(item) {
       error = "No item selected"
       break;
   }
+  return { title: title, amount: amount, error: error }
 
 }
 
 app.get('/checkout', function (req, res) {
   const item = req.query.item;
-  getItem(item)
+  var itemDetails = getItem(item)
   res.render('checkout', {
     item: item,
-    title: title,
-    amount: amount,
-    error: error
+    title: itemDetails.title,
+    amount: itemDetails.amount,
+    error: itemDetails.error
   });
 
 });
 
 
 
-
 const calculateOrderAmount = (items) => {
   //KH- calculate multiple items (not possible from front end yet)
+
   let orderAmount = 0;
   for (let i = 0; i < items.length; i++) {
-    getItem(items[i].id)
-    orderAmount = orderAmount + amount;
+    let itemDetails = getItem(items[i].id)
+    orderAmount += itemDetails.amount;
   }
   return orderAmount
 };
@@ -87,10 +89,10 @@ app.post("/create-payment-intent", async (req, res) => {
 
   //KH- preparing to send lineItems in meta data if more than one item is purchased (not possible from front end yet)
   for (let i = 0; i < items.length; i++) {
-    getItem(items[i].id)
+    let itemDetails = getItem(items[i].id)
     lineItems.push({
-      amount: amount,
-      title: title
+      amount: itemDetails.amount,
+      title: itemDetails.title
     })
   }
 
